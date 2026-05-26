@@ -9,6 +9,7 @@ on:
 env:
   NODE_VERSION: '20'
   DATABASE_URL: 'postgresql://root:rootpassword@localhost:5433/orders_db?schema=public'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   test:
@@ -41,6 +42,9 @@ jobs:
 
       - name: Instalar dependências
         run: npm ci
+
+      - name: Gerar Prisma Client
+        run: npx prisma generate
 
       - name: Lint (ESLint)
         run: npm run lint:ci
@@ -90,4 +94,3 @@ jobs:
 
       - name: Pipeline Concluído
         run: echo "CI/CD Pipeline executado com sucesso"
-
