@@ -8,7 +8,7 @@ on:
 
 env:
   NODE_VERSION: '20'
-  DATABASE_URL: 'postgresql://root:rootpassword@postgres:5432/orders_db?schema=public'
+  DATABASE_URL: 'postgresql://root:rootpassword@localhost:5433/orders_db?schema=public'
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
@@ -56,7 +56,7 @@ jobs:
 
       - name: Aguardar PostgreSQL
         run: |
-          until pg_isready -h postgres -p 5432 -U root; do
+          until pg_isready -h localhost -p 5433 -U root; do
             echo 'Aguardando banco de dados...'
             sleep 1
           done
