@@ -5,7 +5,7 @@
 <h1 align="center">Order System</h1>
 
 <p align="center">
-  <strong>Sistema de Gestao de Pedidos</strong>
+  <strong>Sistema de Gestão de Pedidos</strong>
 </p>
 
 <p align="center">
@@ -26,19 +26,19 @@
 
 ---
 
-## Descricao do Projeto
+## Descrição do Projeto
 
-Uma **API GraphQL de sistema de gestao de pedidos** construida com:
+Uma **API GraphQL de sistema de gestão de pedidos** construída com:
 - **NestJS** framework para Node.js
-- **TypeScript** com tipagem estatica
+- **TypeScript** com tipagem estática
 - **Prisma**, ORM para PostgreSQL
 - **PostgreSQL**, banco de dados relacional
-- **GraphQL Apollo** server para API flexivel
+- **GraphQL Apollo** server para API flexível
 - **Docker** para ambiente de desenvolvimento e testes
 
-Alem disso, a API possui controle de concorrencia para evitar overselling de produtos usando **Atomic WHERE Validation**, validacao atomica no banco de dados sem bloqueios.
+Além disso, a API possui controle de concorrência para evitar overselling de produtos usando **Atomic WHERE Validation**, validação atômica no banco de dados sem bloqueios.
 
-## Inicio Rapido do Projeto
+## Início Rápido do Projeto
 
 Siga um dos fluxos abaixo para iniciar o projeto: com Docker (recomendado) ou localmente sem Docker.
 
@@ -50,20 +50,20 @@ Siga um dos fluxos abaixo para iniciar o projeto: com Docker (recomendado) ou lo
 
 ### 1) Usando Docker (recomendado)
 
-Opcao Rapida — subir API e banco em containers (recomendado)
+Opção Rápida — subir API e banco em containers (recomendado)
 
 ```bash
 # 1. Copiar o exemplo de env
 cp .env.example .env
 
-# 2. Subir os servicos em background para construir a imagem
+# 2. Subir os serviços em background para construir a imagem
 docker compose up -d --build
 
 # 3. Dentro do container da API: instalar deps, gerar Prisma client e aplicar migrations
 docker compose run --rm api sh -c "npm install && npx prisma generate && npx prisma migrate deploy"
 ```
 
-Opcao para desenvolvimento local com hot-reload (subir so o DB em container)
+Opção para desenvolvimento local com hot-reload (subir só o DB em container)
 
 ```bash
 # 1. Copiar o exemplo de env
@@ -102,7 +102,7 @@ Abra: http://localhost:3000/graphql
 ### 3) Testes
 
 ```bash
-# Testes Unitarios
+# Testes Unitários
 npm run test
 
 # Testes E2E (DB precisa estar rodando: `docker compose up -d db`)
@@ -111,7 +111,7 @@ npm run test:e2e
 
 ---
 
-## Comandos Disponiveis
+## Comandos Disponíveis
 
 ### Desenvolvimento
 ```bash
@@ -121,7 +121,7 @@ npm run start:dev      # Modo watch (desenvolvimento)
 
 ### Testes
 ```bash
-npm run test           # Testes unitarios
+npm run test           # Testes unitários
 npm run test:watch    # Testes em modo watch
 npm run test:cov      # Testes com coverage
 npm run test:e2e      # Testes E2E
@@ -138,67 +138,67 @@ npx prisma migrate deploy # Deploy de migrations
 
 ## Arquitetura do Projeto
 
-O projeto segue **Arquitetura Hexagonal** com separacao de responsabilidades:
+O projeto segue **Arquitetura Hexagonal** com separação de responsabilidades:
 
 ```
 src/
 ├── domain/
-│   ├── entities/              # Entidades do dominio (User, Product, Order)
-│   ├── exceptions/            # Excecoes de negocio
-│   └── repositories/          # Interfaces dos repositorios (Portas)
+│   ├── entities/              # Entidades do domínio (User, Product, Order)
+│   ├── exceptions/            # Exceções de negócio
+│   └── repositories/          # Interfaces dos repositórios (Portas)
 ├── application/
-│   └── use-cases/             # Casos de uso (logica de negocio)
+│   └── use-cases/             # Casos de uso (lógica de negócio)
 ├── infrastructure/
-│   └── database/              # Implementacao dos repositorios (Adaptadores)
+│   └── database/              # Implementação dos repositórios (Adaptadores)
 └── presentation/
     └── graphql/               # Resolvers GraphQL (Adaptadores)
 ```
 
-### Beneficios da Arquitetura Hexagonal
-- **Independencia de frameworks:** Logica de negocio isolada
-- **Testabilidade:** Facil mock de dependencias
-- **Manutenibilidade:** Separacao clara de responsabilidades
-- **Escalabilidade:** Facil adicionar novos casos de uso
+### Benefícios da Arquitetura Hexagonal
+- **Independência de frameworks:** Lógica de negócio isolada  
+- **Testabilidade:** Fácil mock de dependências  
+- **Manutenibilidade:** Separação clara de responsabilidades  
+- **Escalabilidade:** Fácil adicionar novos casos de uso  
 
 ---
 
-## Controle de Concorrencia
+## Controle de Concorrência
 
 ### Problema
-Em operacoes simultaneas, multiplos pedidos podem levar o estoque a valores negativos (overselling).
+Em operações simultâneas, múltiplos pedidos podem levar o estoque a valores negativos (overselling).
 
 ```
 Exemplo:
   Produto: Notebook (estoque = 1)
   Pedido A: 1 unidade
   Pedido B: 1 unidade (chegam simultaneamente)
-
-  Sem protecao:
-    - A le estoque (1)
-    - B le estoque (1)
-    - A decrementa -> estoque = 0
-    - B decrementa -> estoque = -1 (NEGATIVO!)
+  
+  Sem proteção:
+    - A lê estoque (1)
+    - B lê estoque (1)
+    - A decrementa → estoque = 0
+    - B decrementa → estoque = -1 (NEGATIVO!)
 ```
 
-### Solucao: Atomic WHERE Validation (Otimista)
+### Solução: Atomic WHERE Validation (Otimista)
 
 **Implementado em:** `src/infrastructure/database/prisma-product.repository.ts`
 
-Usamos **validacao atomica no banco de dados** — condicao de atualizacao combinada com operacao em uma unica query:
+Usamos **validação atômica no banco de dados** — condição de atualização combinada com operação em uma única query:
 
 ```typescript
 async decrementStock(id: string, quantity: number): Promise<boolean> {
-  // Operacao atomica: so decrementa se stock >= quantity
+  // Operação atômica: só decrementa se stock >= quantity
   const { count } = await this.prisma.product.updateMany({
     where: {
       id: id,
-      stock: { gte: quantity },  // Condicao atomica
+      stock: { gte: quantity },  // Condição atômica
     },
     data: {
       stock: { decrement: quantity },
     },
   });
-
+  
   return count > 0;  // Retorna sucesso (1) ou falha (0)
 }
 ```
@@ -208,32 +208,32 @@ async decrementStock(id: string, quantity: number): Promise<boolean> {
 UPDATE products
 SET stock = stock - $1
 WHERE id = $2 AND stock >= $3
--- Retorna: numero de linhas atualizadas (0 ou 1)
+-- Retorna: número de linhas atualizadas (0 ou 1)
 ```
 
-### Por que a solucao atomica e superior ao SQL puro?
+### Por que a solução atômica é superior ao SQL puro?
 
 | Aspecto | Atomic WHERE | Pessimistic Lock |
 |---------|-----------|------------------|
-| **Seguranca** | Impossivel negativo | Impossivel negativo |
-| **Performance** |  Uma query | Multiplas + bloqueios |
-| **Escalabilidade** |  Sem contencao | Com bloqueios |
-| **Simplicidade** | 5 linhas | Transacoes explicitas |
-| **Deadlock Risk** | Nenhum |  Qualidade de codigo
+| **Segurança** | Impossível negativo | Impossível negativo |
+| **Performance** |  Uma query | Múltiplas + bloqueios |
+| **Escalabilidade** |  Sem contenção | Com bloqueios |
+| **Simplicidade** | 5 linhas | Transações explícitas |
+| **Deadlock Risk** | Nenhum |  Qualidade de código
 
 ### Exemplo de Fluxo Seguro
 
 ```
 Timeline | Pedido A                    | Pedido B              | Stock
 ---------|-----------------------------+----------------------+-------
-0ms      | Le produto (stock=1)        |                      | 1
-1ms      |                             | Le produto (stock=1) | 1
+0ms      | Lê produto (stock=1)        |                      | 1
+1ms      |                             | Lê produto (stock=1) | 1
 2ms      | updateMany(WHERE qty<=1)    |                      |
 3ms      |    count=1, sucesso         |                      | 0
 4ms      |                             | updateMany(...)      |
 5ms      |                             |    count=0, falha    | 0
-
-Resultado: 1 sucesso, 1 rejeicao com erro apropriado
+         
+Resultado: 1 sucesso, 1 rejeição com erro apropriado
 ```
 ---
 
@@ -292,10 +292,10 @@ Resultado: 1 sucesso, 1 rejeicao com erro apropriado
 
 ## Testes
 
-### Suite de Testes
-- **Unitarios:** Casos de uso isolados com mock de repositorios
+### Suíte de Testes
+- **Unitários:** Casos de uso isolados com mock de repositórios
 - **E2E:** Fluxo completo com banco de dados conteinerizado
-- **Concorrencia:** Validacao de race conditions com multiplas requisicoes simultaneas
+- **Concorrência:** Validação de race conditions com múltiplas requisições simultâneas
 
 ### Executar testes
 ```bash
@@ -312,49 +312,49 @@ npm run test:cov
 
 O projeto possui pipeline **GitHub Actions** no arquivo `/.github/workflows/ci.yml` que executa em cada PR:
 
-- Checkout do codigo
-- Setup de Node.js
-- Instalar dependencias
-- **Lint** (ESLint com erros)
-- **Build** (Compilar TypeScript)
-- **Migrations** (Executar Prisma)
-- **Testes unitarios** (Jest)
-- **Testes E2E** (Jest E2E)
-- **Coverage** (Codecov)
+- Checkout do código  
+- Setup de Node.js  
+- Instalar dependências  
+- **Lint** (ESLint com erros)  
+- **Build** (Compilar TypeScript)  
+- **Migrations** (Executar Prisma)  
+- **Testes unitários** (Jest)  
+- **Testes E2E** (Jest E2E)  
+- **Coverage** (Codecov)  
 
 ---
 
-## Trade-offs e Decisoes
+## Trade-offs e Decisões
 
 ### 1. Prisma vs SQL Puro
-- **Escolha:** Prisma com fallback para `$queryRaw` onde necessario
-- **Razao:** Type-safety + migrations automaticas, com controle via SQL puro para pessimistic lock
+- **Escolha:** Prisma com fallback para `$queryRaw` onde necessário
+- **Razão:** Type-safety + migrations automáticas, com controle via SQL puro para pessimistic lock
 - **Trade-off:** Pequena curva de aprendizado vs. produtividade
 
 ### 2. Atomic WHERE Validation vs Pessimistic Lock vs Optimistic Concurrency
 - **Escolha:** Atomic WHERE Validation
-- **Implementacao:** Condicao na clausula WHERE + atualizacao atomica
-- **Razoes:**
+- **Implementação:** Condição na cláusula WHERE + atualização atômica
+- **Razões:** 
   - Performance excelente (sem bloqueios, sem retry loops)
-  - Impossivel race conditions (banco garante atomicidade)
-  - Simples e elegante (5 linhas de codigo)
-  - Escalavel sob alta concorrencia
+  - Impossível race conditions (banco garante atomicidade)
+  - Simples e elegante (5 linhas de código)
+  - Escalável sob alta concorrência
   - Zero deadlock risk
-- **Trade-off:** Aplicacao valida `count === 0` para tratamento de erro
+- **Trade-off:** Aplicação valida `count === 0` para tratamento de erro
 
 ### 4. Logs Estruturados (Pino)
 - **Escolha:** Pino para logs JSON estruturados
-- **Razao:** Melhor para observabilidade em producao
-- **Trade-off:** Menos legivel em desenvolvimento (mitigado com pino-pretty)
+- **Razão:** Melhor para observabilidade em produção
+- **Trade-off:** Menos legível em desenvolvimento (mitigado com pino-pretty)
 
 ---
 
 ## O que Faria Diferente com Mais Tempo
 
-#### 1. **Implementar status de Pedidos**
+#### 1. **Implementar tatus de Pedidos**
 ```typescript
 enum OrderStatus {
-  PENDING = "pending",          // Criado, aguardando confirmacao
+  PENDING = "pending",          // Criado, aguardando confirmação
   CONFIRMED = "confirmed",      // Confirmado, pronto para envio
   SHIPPED = "shipped",          // Despachado
   DELIVERED = "delivered",      // Entregue
@@ -364,19 +364,19 @@ enum OrderStatus {
 
 Adicionar ao schema Prisma para rastreamento de ciclo de vida do pedido.
 
-Permite rastreabilidade e conformidade regulatoria.
+Permite rastreabilidade e conformidade regulatória.
 
-#### 2. **Autenticacao JWT**
+#### 2. **Autenticação JWT**
 ```typescript
 @UseGuards(JwtAuthGuard)
 @Mutation(() => OrderType)
 async createOrder(@CurrentUser() user: User, @Args('input') input: CreateOrderInput) {
-  // Aplicar criar-pedido apenas ao usuario autenticado
+  // Aplicar criar-pedido apenas ao usuário autenticado
   return this.createOrderUseCase.execute(input, user.id);
 }
 ```
 
-Seguranca e isolamento de dados entre usuarios.
+Segurança e isolamento de dados entre usuários.
 
 #### 3. **Cache com Redis**
 ```typescript
@@ -387,11 +387,11 @@ async products() {
 }
 ```
 
-Reduzir carga no BD, melhorar latencia.
+Reduzir carga no BD, melhorar latência.
 
-#### 4. **Webhooks para Notificacoes**
+#### 4. **Webhooks para Notificações**
 ```typescript
-// Quando pedido e criado
+// Quando pedido é criado
 await this.webhookService.trigger('order.created', {
   orderId: order.id,
   userId: order.userId,
@@ -399,11 +399,12 @@ await this.webhookService.trigger('order.created', {
 });
 ```
 
-Integracao com sistemas de email, SMS, notificacoes.
+Integração com sistemas de email, SMS, notificações.
 
 #### 5. **Mensageria (RabbitMQ/Kafka)**
 Processar pedidos assincronamente com garantia de ordem por produto:
 - Escalabilidade horizontal
-- Resiliencia
+- Resiliência
 - Processamento sequencial por produto
 
+---
