@@ -1,0 +1,73 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type OrderItemType {
+  productId: ID!
+  quantity: Int!
+  price: Float!
+}
+
+type OrderType {
+  id: ID!
+  userId: ID!
+  total: Float!
+  items: [OrderItemType!]!
+  createdAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type UserType {
+  id: ID!
+  name: String!
+  email: String!
+  createdAt: DateTime!
+  orders: [OrderType]!
+}
+
+type ProductType {
+  id: ID!
+  name: String!
+  price: Float!
+  stock: Int!
+  createdAt: DateTime!
+}
+
+type Query {
+  users: [UserType!]!
+  user(id: String!): UserType
+  products: [ProductType!]!
+  product(id: String!): ProductType
+  order(id: String!): OrderType
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): UserType!
+  createProduct(input: CreateProductInput!): ProductType!
+  createOrder(input: CreateOrderInput!): OrderType!
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+}
+
+input CreateProductInput {
+  name: String!
+  price: Float!
+  stock: Int!
+}
+
+input CreateOrderInput {
+  userId: ID!
+  items: [OrderItemInput!]!
+}
+
+input OrderItemInput {
+  productId: ID!
+  quantity: Int!
+}
