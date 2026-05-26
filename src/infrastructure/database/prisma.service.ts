@@ -5,10 +5,8 @@ import { Pool } from 'pg';
 import 'dotenv/config';
 
 @Injectable()
-export class PrismaService
-  extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
+export class PrismaService implements OnModuleInit, OnModuleDestroy {
+  private prismaClient: PrismaClient;
   private pool: Pool;
 
   constructor() {
@@ -22,16 +20,44 @@ export class PrismaService
     const pool = new Pool({ connectionString: url });
     const adapter = new PrismaPg(pool);
 
-    super({ adapter });
+    this.prismaClient = new PrismaClient({ adapter });
     this.pool = pool;
   }
 
-  async onModuleInit() {
-    await this.$connect();
+  get $queryRaw() {
+    return this.prismaClient.$queryRaw;
   }
 
-  async onModuleDestroy() {
-    await this.$disconnect();
+  get $executeRaw() {
+    return this.prismaClient.$executeRaw;
+  }
+
+  get order() {
+    return this.prismaClient.order;
+  }
+
+  get product() {
+    return this.prismaClient.product;
+  }
+
+  get user() {
+    return this.prismaClient.user;
+  }
+
+  async $connect(): Promise<void> {
+    await this.prismaClient.$connect();
+  }
+
+  async $disconnect(): Promise<void> {
+    await this.prismaClient.$disconnect();
+  }
+
+  async onModuleInit(): Promise<void> {
+    await this.prismaClient.$connect();
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.prismaClient.$disconnect();
     await this.pool.end();
   }
 }
