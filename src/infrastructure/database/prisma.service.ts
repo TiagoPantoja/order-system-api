@@ -32,7 +32,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return this.prismaClient.$executeRaw;
   }
 
-  async $executeRawUnsafe(...args: Parameters<PrismaClient['$executeRawUnsafe']>) {
+  async $executeRawUnsafe(
+    ...args: Parameters<PrismaClient['$executeRawUnsafe']>
+  ) {
     return this.prismaClient.$executeRawUnsafe(...args);
   }
 
