@@ -351,7 +351,7 @@ O projeto possui pipeline **GitHub Actions** no arquivo `/.github/workflows/ci.y
 
 ## O que Faria Diferente com Mais Tempo
 
-#### 1. **Implementar tatus de Pedidos**
+#### 1. **Implementar Status de Pedidos**
 ```typescript
 enum OrderStatus {
   PENDING = "pending",          // Criado, aguardando confirmação
